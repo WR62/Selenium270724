@@ -6,15 +6,15 @@ from selenium.webdriver.chrome.service import Service
 
 def pytest_addoption(parser):
     parser.addoption("--browser", default="ch", choices=["eg", "ch", "ff"])
-    parser.addoption("--url", default="http://192.168.100.32/")
+    parser.addoption("--url", default="http://192.168.43.15")   #http://192.168.43.15
 
 
-@pytest.fixture()
+@pytest.fixture(scope='session')
 def url_address(request):
     return request.config.getoption("--url")
 
 
-@pytest.fixture()
+@pytest.fixture(scope='session')
 def browser(request):
     browser_name = request.config.getoption("--browser")
     if browser_name == "ch":
