@@ -35,19 +35,25 @@ class AdminProductPage(BasePage):
     SELECTOR_JAVASCRIPT_SEO = ".nav-link[href='#tab-seo']"
 
     def get_token(self) -> str:
+        self.logger.debug('%s; getting token on page %s' % (self.class_name, self.url))
         current_url = self.browser.current_url
         token = current_url[current_url.find('token=') + 6:]
         return token
 
     def get_href_attribute(self, locator_for_xpath) -> str:
+        self.logger.debug('%s; getting href attribute for element %s on page %s' % (self.class_name,
+                                                                                    locator_for_xpath, self.url))
         elem = self.find_elem_clickable(locator_for_xpath)
         attr = elem.get_attribute('href')
+        self.logger.debug('%s; href attribute for element %s on page %s is %s' % (self.class_name, locator_for_xpath,
+                                                                                  self.url, attr))
         return attr
 
     def get_javascript_query(self, selector):
         return 'document.querySelector(\"' + selector + '\").click()'
 
     def input_new_product(self):
+        self.logger.debug('%s; input new product on page %s' % (self.class_name, self.url))
         # Переход на страницу добавления нового продукта
         self.go_to_site(additional_url=self.ADD_URL_NEW_PRODUCT + self.get_token())
         # Ввод данных на вкладке General
@@ -64,6 +70,7 @@ class AdminProductPage(BasePage):
         self.find_elem_located(self.LOCATOR_FOR_SAVE).send_keys(Keys.ENTER)
 
     def search_for_product(self, name_of_product) -> bool:
+        self.logger.debug('%s; searching product %s on page %s' % (self.class_name, name_of_product, self.url))
         self.go_to_site(additional_url=self.ADD_URL_PRODUCTS + self.get_token())
         self.browser.refresh()
         self.input_value(locator=self.LOCATOR_FILTER_PRODUCT, text=name_of_product)
@@ -79,6 +86,7 @@ class AdminProductPage(BasePage):
             return False
 
     def enter_to_admin_page(self):
+        self.logger.debug('%s; entering into admin panel, url - %s' % (self.class_name, self.url))
         login_logout_page = LoginLogoutPage(self.browser, self.url)
         login_logout_page.go_to_site()
         login_logout_page.input_value(login_logout_page.LOCATOR_USERNAME, login_logout_page.LOGIN_USER)

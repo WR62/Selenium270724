@@ -1,4 +1,4 @@
-import time
+import allure
 
 from pages.basepage import BasePage
 from selenium.webdriver.common.by import By
@@ -19,18 +19,21 @@ class RegisterPage(BasePage):
     LOCATOR_EMAIL = (By.ID, "input-email")
     LOCATOR_PASSWORD = (By.ID, "input-password")
     LOCATOR_CHECK_AGREE = (By.XPATH, "//input[@name='agree']")
-    LOCATOR_CREATED = (By.XPATH,"//h1[contains(text(),'Account Has Been Created')]")
+    LOCATOR_CREATED = (By.XPATH, "//h1[contains(text(),'Account Has Been Created')]")
 
     def go_to_site(self):
-        BasePage.go_to_site(self, additional_url=self.REGISTER_PAGE_URL)
+        with allure.step(f'Move to page {self.REGISTER_PAGE_URL}'):
+            BasePage.go_to_site(self, additional_url=self.REGISTER_PAGE_URL)
 
     def register_user(self) -> bool:
+        self.logger.debug('%s; registering new random user' % self.class_name)
         faker = Faker('en-GB')
         self.input_value(self.LOCATOR_FIRST_NAME, faker.first_name())
         self.input_value(self.LOCATOR_LAST_NAME, faker.last_name())
         self.input_value(self.LOCATOR_EMAIL, faker.email())
         self.input_value(self.LOCATOR_PASSWORD, faker.password(length=8))
         # time.sleep(2)
+        self.browser.execute_script("window.scrollTo(0, document.body.scrollHeight);")
         self.find_elem_clickable(self.LOCATOR_CHECK_AGREE, timeout=5).click()
         # time.sleep(2)
         self.find_elem_clickable(self.LOCATOR_CONTINUE, timeout=6).click()
@@ -38,5 +41,4 @@ class RegisterPage(BasePage):
             self.find_elem_located(self.LOCATOR_CREATED)
         except TimeoutException:
             return False
-        else:
-            return True
+        return True
