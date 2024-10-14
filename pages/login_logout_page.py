@@ -1,3 +1,5 @@
+import allure
+
 from pages.basepage import BasePage
 from selenium.webdriver.common.by import By
 
@@ -17,4 +19,5 @@ class LoginLogoutPage(BasePage):
     LOCATOR_BUTTON_LOGOUT = (By.ID, 'nav-logout')
 
     def go_to_site(self):
-        BasePage.go_to_site(self, additional_url=self.LOGIN_LOGOUT_PAGE_URL)
+        with allure.step(f'Move to page {self.LOGIN_LOGOUT_PAGE_URL}'):
+            BasePage.go_to_site(self, additional_url=self.LOGIN_LOGOUT_PAGE_URL)

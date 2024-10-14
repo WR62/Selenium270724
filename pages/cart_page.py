@@ -14,5 +14,6 @@ class CartPage(BasePage):
     LOCATOR_PRODUCT_NAME = (By.XPATH, "//*[contains(text(),'Canon EOS')]")
 
     def choose_product_color(self, value='15'):
+        self.logger.debug('%s; choosing color of product on page %s' % (self.class_name, self.url))
         select_elem = Select(self.find_elem_clickable(self.LOCATOR_PRODUCT_COLOR))
         return select_elem.select_by_value(value)

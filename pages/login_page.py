@@ -1,3 +1,5 @@
+import allure
+
 from pages.basepage import BasePage
 from selenium.webdriver.common.by import By
 
@@ -12,4 +14,5 @@ class LoginPage(BasePage):
     LOCATOR_INPUT_GROUP = (By.CLASS_NAME, "input-group-text")
 
     def go_to_site(self):
-        BasePage.go_to_site(self, additional_url=self.LOGIN_PAGE_URL)
+        with allure.step(f'Move to page {self.LOGIN_PAGE_URL}'):
+            BasePage.go_to_site(self, additional_url=self.LOGIN_PAGE_URL)

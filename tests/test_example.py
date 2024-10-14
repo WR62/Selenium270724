@@ -1,5 +1,7 @@
 import time
 
+import allure
+from allure_commons.types import AttachmentType
 import pytest
 from selenium.webdriver.common.by import By
 from selenium.webdriver.support import expected_conditions as EC
@@ -17,15 +19,23 @@ from pages.product_card_page import ProductCardPage
 from pages.register_page import RegisterPage
 
 
+@allure.title('Starting page')
 @pytest.mark.parametrize("locat", [MainPage.LOCATOR_MAIN_CONT, MainPage.LOCATOR_CAROUSEL_BANNER,
                                    MainPage.LOCATOR_CAROUSEL_INDICATORS, MainPage.LOCATOR_TOP, MainPage.LOCATOR_MENU])
 def test_main_page(browser, url_address, locat):
     m_p = MainPage(browser, url_address)
     m_p.go_to_site(':8081')
-    assert "Store" in browser.title
+
+    try:
+        assert "Store" in browser.title
+    except AssertionError as exc:
+        allure.attach(browser.get_screenshot_as_png(), name='main_page', attachment_type=AttachmentType.JPG)
+        raise Exception(exc)
+
     assert m_p.find_elem_located(locat) is not None
 
 
+@allure.title('Catalog of products')
 @pytest.mark.parametrize("locat", [CatalogPage.LOCATOR_BREADCRUMB, CatalogPage.LOCATOR_LIST_GROUP,
                                    CatalogPage.LOCATOR_CAROUSEL_BANNER_0, CatalogPage.LOCATOR_DISPLAY_CONTROL,
                                    CatalogPage.LOCATOR_TEXT_END])
@@ -35,6 +45,7 @@ def test_catalog(browser, url_address, locat):
     assert catl_page.find_elem_located(locat) is not None
 
 
+@allure.title('Card of product (selected randomly by tester)')
 @pytest.mark.parametrize("locat", [ProductCardPage.LOCATOR_IMG_THUMBNAIL, ProductCardPage.LOCATOR_BTN_LIGHT,
                                    ProductCardPage.LOCATOR_OPTIONS, ProductCardPage.LOCATOR_INPUT_PRODUCT])
 def test_product_card(browser, url_address, locat):
@@ -44,6 +55,7 @@ def test_product_card(browser, url_address, locat):
     assert prod_card_page.find_elem_clickable(prod_card_page.LOCATOR_BUTTON_UPLOAD) is not None
 
 
+@allure.title('Page for login into admin panel')
 @pytest.mark.parametrize("locat", [LoginPage.LOCATOR_CARD_HEADER, LoginPage.LOCATOR_USERNAME,
                                    LoginPage.LOCATOR_PASSWORD, LoginPage.LOCATOR_INPUT_GROUP])
 def test_login(browser, url_address, locat):
@@ -53,6 +65,7 @@ def test_login(browser, url_address, locat):
     assert login_page.find_elem_clickable(login_page.LOCATOR_BUTTON_PRIMARY) is not None
 
 
+@allure.title('Page for user registration')
 @pytest.mark.parametrize("locat", [RegisterPage.LOCATOR_COLUMN_RIGHT, RegisterPage.LOCATOR_ACCOUNT,
                                    RegisterPage.LOCATOR_COLUMN_FIRST_NAME, RegisterPage.LOCATOR_INPUT_NEWSLETTER])
 def test_register(browser, url_address, locat):
@@ -62,6 +75,7 @@ def test_register(browser, url_address, locat):
     assert regist_page.find_elem_clickable(regist_page.LOCATOR_CONTINUE) is not None
 
 
+@allure.title('Login into admin panel< checking for successful login, testing logout from panel')
 def test_login_logout(browser, url_address):
     login_logout_page = LoginLogoutPage(browser, url_address)
     login_logout_page.go_to_site()
@@ -72,6 +86,7 @@ def test_login_logout(browser, url_address):
     assert login_logout_page.find_elem_clickable(login_logout_page.LOCATOR_BUTTON_LOGIN) is not None
 
 
+@allure.title('Adding a product to cart')
 def test_cart(browser, url_address):
     cart_page = CartPage(browser, url_address)
     cart_page.go_to_site(cart_page.BASE_PAGE_URL)
@@ -88,12 +103,19 @@ def test_cart(browser, url_address):
     assert cart_page.find_elem_located(cart_page.LOCATOR_PRODUCT_NAME) is not None
 
 
+@allure.step('Changing currency')
 def change_currency(browser, url_address, url_address_add):
     base_page = BasePage(browser, url_address)
     orig_text = base_page.get_element_attribute(add_url=url_address_add, locator=(By.CLASS_NAME, "price-new"),
                                                 attrib='innerText')
     # Проверяем наличие символа $ в цене первого товара на странице
-    assert '$' in orig_text
+    try:
+        assert '$' in orig_text
+    except AssertionError as as_er:
+        allure.attach(browser.get_screenshot_as_png(), name='currency_test_$',
+                      attachment_type=AttachmentType.JPG)
+        raise Exception(as_er)
+
     time.sleep(2)
     # Изменяем валюту отображения через Javascript
     browser.execute_script('document.querySelector("body > nav:nth-child(2) > div:nth-child(1) > div:nth-child(1) > '
@@ -103,24 +125,31 @@ def change_currency(browser, url_address, url_address_add):
     # Проверяем наличие символа € в цене первого товара на странице
     orig_text = base_page.get_element_attribute(add_url=url_address_add, locator=(By.CLASS_NAME, "price-new"),
                                                 attrib='innerText')
-    assert '€' in orig_text
+    try:
+        assert '€' in orig_text
+    except AssertionError as as_er:
+        allure.attach(browser.get_screenshot_as_png(), name='currency_test_$',
+                      attachment_type=AttachmentType.JPG)
+        raise Exception(as_er)
     # Возвращаем валюту отображения в $ через Javascript
     browser.execute_script('document.querySelector("body > nav:nth-child(2) > div:nth-child(1) > div:nth-child(1) > '
                            'ul:nth-child(1) > li:nth-child(1) > form:nth-child(1) > div:nth-child(1) > ul:nth-child('
                            '2) > li:nth-child(3) > a:nth-child(1)").click()')
 
 
-
+@allure.title('Changing currency on a main page')
 def test_change_currency_main(browser, url_address):
     # Проверка смены валюты на главной странице
     change_currency(browser, url_address, ':8081')
 
 
+@allure.title('Changing currency on a product page')
 def test_change_currency_catalog(browser, url_address):
-    # Проверка смены валюты на странице произыольного товара из каталога
+    # Проверка смены валюты на странице произвольного товара из каталога
     change_currency(browser, url_address, ':8081/en-gb/catalog/desktops/mac')
 
 
+@allure.title('Adding a new product into catalog')
 def test_add_product(browser, url_address):
     # noinspection DuplicatedCode
     login_logout_page = LoginLogoutPage(browser, url_address)
@@ -139,19 +168,39 @@ def test_add_product(browser, url_address):
     assert admin_prod_page.search_for_product(admin_prod_page.input_['product_name']) is True
 
 
+@allure.title('Deleting product from a catalog')
 def test_delete_product(browser, url_address):
     admin_prod_page = AdminProductPage(browser, url_address)
     admin_prod_page.enter_to_admin_page()
     # Переход на страницу списка продуктов
     admin_prod_page.go_to_site(additional_url=admin_prod_page.ADD_URL_PRODUCTS + admin_prod_page.get_token())
-    assert admin_prod_page.search_for_product(admin_prod_page.input_['product_name']) is True, "No such product!"
+
+    try:
+        assert admin_prod_page.search_for_product(admin_prod_page.input_['product_name']) is True, "No such product!"
+    except AssertionError as as_er:
+        allure.attach(browser.get_screenshot_as_png(), name='absence of product',
+                      attachment_type=AttachmentType.JPG)
+        raise Exception(as_er)
+
     admin_prod_page.find_elem_located(admin_prod_page.LOCATOR_CHECKBOX).click()
     admin_prod_page.find_elem_clickable(admin_prod_page.LOCATOR_BUTTON_DELETE).click()
     browser.switch_to.alert.accept()
-    assert admin_prod_page.search_for_product(admin_prod_page.input_['product_name']) is False, "Such product exists!"
+    try:
+        assert admin_prod_page.search_for_product(admin_prod_page.input_['product_name']) is False, "Such product " \
+                                                                                                    "exists!"
+    except AssertionError as as_er:
+        allure.attach(browser.get_screenshot_as_png(), name='existing product',
+                      attachment_type=AttachmentType.JPG)
+        raise Exception(as_er)
 
 
+@allure.title('Adding new user')
 def test_register_user(browser, url_address):
     reg_page = RegisterPage(browser, url_address)
     reg_page.go_to_site()
-    assert reg_page.register_user() is True
+    try:
+        assert reg_page.register_user() is True
+    except AssertionError as as_er:
+        allure.attach(browser.get_screenshot_as_png(), name='fail registration',
+                      attachment_type=AttachmentType.JPG)
+        raise Exception(as_er)
